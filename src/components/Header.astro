@@ -1,0 +1,32 @@
+---
+import { Sparkles, FileText, FilePlus } from 'lucide-react';
+---
+
+<header class="sticky top-0 z-50 w-full bg-white border-b-4 border-black px-4 py-4 sm:px-8">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="group flex items-center gap-2">
+      <div class="bg-[#00F0FF] p-2 neo-brutal group-hover:rotate-12 transition-transform">
+        <Sparkles size={24} />
+      </div>
+      <span class="text-2xl font-black uppercase tracking-tighter">BoldShare</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-6 font-black uppercase text-sm">
+      <a href="/#features" class="hover:text-[#FF00E4] transition-colors">Features</a>
+      <a href="/#faq" class="hover:text-[#FF00E4] transition-colors">FAQ</a>
+      <div class="w-1 h-6 bg-black mx-2" />
+      <a href="/text-sharing" class="hover:text-[#FF00E4] flex items-center gap-2 transition-colors">
+        <FileText size={18} /> Text
+      </a>
+      <a href="/file-sharing" class="hover:text-[#FF00E4] flex items-center gap-2 transition-colors">
+        <FilePlus size={18} /> Files
+      </a>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <a href="/text-sharing" class="hidden sm:block bg-[#FF00E4] text-white px-4 py-2 neo-brutal text-sm font-black uppercase hover:bg-[#D100BB] transition-colors">
+        Start Sharing
+      </a>
+    </div>
+  </div>
+</header>

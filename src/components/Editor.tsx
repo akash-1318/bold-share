@@ -3,15 +3,13 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Share2, Loader2, Sparkles } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import ShareOverlay from './ShareOverlay';
 
 const Editor = () => {
   const [expiry, setExpiry] = useState('60'); // Default to 60 minutes (1 hour)
   const [customExpiry, setCustomExpiry] = useState('60');
   const [sharing, setSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [hasContent, setHasContent] = useState(false);
-  const [, setEditorVersion] = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -19,13 +17,6 @@ const Editor = () => {
       Underline,
     ],
     content: '',
-    onUpdate: ({ editor }) => {
-      setHasContent(!editor.isEmpty);
-      setEditorVersion((version) => version + 1);
-    },
-    onSelectionUpdate: ({ editor }) => {
-      setEditorVersion((version) => version + 1);
-    },
     editorProps: {
       attributes: {
         class: 'p-6 focus:outline-none min-h-[300px] text-xl',
@@ -68,19 +59,20 @@ const Editor = () => {
     }
   };
 
+  const getExpiryMessage = () => {
+    let minutes = parseInt(expiry === 'custom' ? customExpiry : expiry);
+    if (minutes < 60) return `This content will expire in ${minutes} minutes`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `This content will expire in ${hours}h ${mins > 0 ? `${mins}m` : ''}`;
+  };
+
   if (!editor) return null;
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#00F0FF] p-6 neo-brutal">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-2">
-            BoldShare <Sparkles className="w-8 h-8 text-[#FF00E4]" />
-          </h1>
-          <p className="font-bold opacity-80">Share your thoughts, boldly.</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-3 neo-brutal">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-3 neo-brutal w-full">
           <div className="flex items-center gap-2">
             <label className="font-black text-sm uppercase whitespace-nowrap">Expires in:</label>
             <select 
@@ -152,7 +144,7 @@ const Editor = () => {
       <div className="flex justify-center">
         <button
           onClick={handleShare}
-          disabled={sharing || !hasContent}
+          disabled={sharing || editor.isEmpty}
           className="bg-[#FF00E4] text-white text-2xl font-black px-12 py-6 neo-brutal flex items-center gap-4 hover:bg-[#D100BB] disabled:opacity-50 disabled:cursor-not-allowed group transition-all"
         >
           {sharing ? (
@@ -166,26 +158,11 @@ const Editor = () => {
       </div>
 
       {shareUrl && (
-        <div className="bg-white p-8 neo-brutal text-center space-y-6 animate-in fade-in zoom-in duration-300">
-          <h2 className="text-3xl font-black uppercase">Success! Your link is ready.</h2>
-          <div className="flex items-center gap-2 bg-[#F0F0F0] p-4 border-2 border-black font-mono break-all text-lg">
-            {shareUrl}
-          </div>
-          <div className="flex flex-col items-center gap-6">
-            <div className="bg-white p-4 border-4 border-black inline-block shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-               <QRCodeSVG value={shareUrl} size={160} />
-            </div>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(shareUrl);
-                alert('Copied to clipboard!');
-              }}
-              className="bg-[#00F0FF] font-black px-8 py-4 neo-brutal uppercase text-xl hover:bg-[#00D8E6]"
-            >
-              Copy Link
-            </button>
-          </div>
-        </div>
+        <ShareOverlay 
+          url={shareUrl} 
+          expiryMessage={getExpiryMessage()} 
+          onClose={() => setShareUrl(null)} 
+        />
       )}
     </div>
   );
@@ -193,13 +170,11 @@ const Editor = () => {
 
 const MenuButton = ({ onClick, active, children }: { onClick: () => void, active?: boolean, children: React.ReactNode }) => (
   <button
-    type="button"
     onClick={onClick}
-    aria-pressed={active}
-    className={`p-3 neo-brutal transition-all duration-150 border-2 border-black ${
+    className={`p-3 neo-brutal transition-all ${
       active 
-        ? 'bg-[#FF00E4] text-white shadow-[0_8px_0_rgba(0,0,0,1)] translate-x-[2px] translate-y-[2px]' 
-        : 'bg-white hover:bg-[#F0F0F0] hover:shadow-[0_4px_0_rgba(0,0,0,1)]'
+        ? 'bg-[#FF00E4] text-white translate-x-[4px] translate-y-[4px] shadow-[0px_0px_0px_0px_black]' 
+        : 'bg-white hover:bg-[#F0F0F0] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[0px_0px_0px_0px_black]'
     }`}
   >
     {children}

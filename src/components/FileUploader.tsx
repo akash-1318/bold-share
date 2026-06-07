@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, File, X, Share2, Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { Upload, File as FileIcon, X, Share2, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import ShareOverlay from './ShareOverlay';
 
 const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -59,17 +59,18 @@ const FileUploader = () => {
     }
   };
 
+  const getExpiryMessage = () => {
+    let minutes = parseInt(expiry === 'custom' ? customExpiry : expiry);
+    if (minutes < 60) return `This content will expire in ${minutes} minutes`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `This content will expire in ${hours}h ${mins > 0 ? `${mins}m` : ''}`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8 py-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FF00E4] text-white p-6 neo-brutal">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-2">
-            FileShare <Sparkles className="w-8 h-8 text-[#00F0FF]" />
-          </h1>
-          <p className="font-bold opacity-90">Upload & Share. Securely.</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white text-black p-3 neo-brutal">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FF00E4] p-6 neo-brutal">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white text-black p-3 neo-brutal w-full">
           <div className="flex items-center gap-2">
             <label className="font-black text-sm uppercase whitespace-nowrap">Expires in:</label>
             <select 
@@ -118,7 +119,7 @@ const FileUploader = () => {
         ) : (
           <div className="border-4 border-black p-8 flex flex-col items-center gap-6 animate-in zoom-in duration-200">
             <div className="bg-[#FFFD82] p-6 neo-brutal">
-              <File className="w-16 h-16" />
+              <FileIcon className="w-16 h-16" />
             </div>
             <div className="space-y-1">
               <p className="text-2xl font-black break-all">{file.name}</p>
@@ -157,29 +158,11 @@ const FileUploader = () => {
       </div>
 
       {shareUrl && (
-        <div className="bg-white p-8 neo-brutal text-center space-y-6 animate-in fade-in zoom-in duration-300 border-t-8 border-[#FF00E4]">
-          <div className="flex items-center justify-center gap-3 text-[#FF00E4]">
-             <CheckCircle className="w-10 h-10" />
-             <h2 className="text-3xl font-black uppercase">Upload Successful!</h2>
-          </div>
-          <div className="flex items-center gap-2 bg-[#F0F0F0] p-4 border-2 border-black font-mono break-all text-lg">
-            {shareUrl}
-          </div>
-          <div className="flex flex-col items-center gap-6">
-            <div className="bg-white p-4 border-4 border-black inline-block shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-               <QRCodeSVG value={shareUrl} size={160} />
-            </div>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(shareUrl);
-                alert('Copied to clipboard!');
-              }}
-              className="bg-[#FFFD82] font-black px-8 py-4 neo-brutal uppercase text-xl hover:bg-[#EEEB6D]"
-            >
-              Copy Link
-            </button>
-          </div>
-        </div>
+        <ShareOverlay 
+          url={shareUrl} 
+          expiryMessage={getExpiryMessage()} 
+          onClose={() => setShareUrl(null)} 
+        />
       )}
     </div>
   );

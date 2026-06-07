@@ -1,10 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, MessageCircle, FilePlus, ChevronDown } from 'lucide-react';
+import FAQ from '../components/FAQ';
+import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, FilePlus } from 'lucide-react';
 ---
 
 <Layout>
-  <main class="overflow-hidden">
+  <main>
     <!-- Hero Section -->
     <section class="relative py-24 px-4 bg-[#00F0FF] border-b-8 border-black">
       <div class="max-w-6xl mx-auto text-center space-y-8 relative z-10">
@@ -34,7 +35,7 @@ import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, Messa
     </section>
 
     <!-- Features Section -->
-    <section class="py-24 px-4 bg-white">
+    <section id="features" class="py-24 px-4 bg-white">
       <div class="max-w-6xl mx-auto">
         <h2 class="text-5xl font-black uppercase mb-16 text-center underline decoration-[#00F0FF] decoration-8 underline-offset-8">
           Pick Your Tool
@@ -80,65 +81,11 @@ import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, Messa
     </section>
 
     <!-- FAQ Section -->
-    <section class="py-24 px-4 bg-[#F0F0F0] border-t-8 border-black">
+    <section id="faq" class="py-24 px-4 bg-[#F0F0F0] border-t-8 border-black">
       <div class="max-w-4xl mx-auto space-y-12">
         <h2 class="text-5xl font-black uppercase text-center">Common Questions</h2>
-        <div class="space-y-6">
-          {[
-            { q: "What is BoldShare?", a: "BoldShare is a privacy-first platform for temporary data sharing. Create formatted text snippets or upload files that exist only as long as you want them to." },
-            { q: "How long do links remain available?", a: "You decide! Set expiry from 15 minutes up to 24 hours. After that, they are gone forever." },
-            { q: "Is it secure?", a: "Absolutely. We don't track who you are. Content is automatically deleted from our servers the moment it expires." },
-            { q: "What's the maximum file size?", a: "Currently, you can upload files up to 100MB for free." }
-          ].map((item, i) => (
-            <div class="bg-white p-8 neo-brutal group hover:bg-[#FFFD82] transition-colors cursor-pointer">
-              <div class="flex justify-between items-center">
-                <h4 class="text-2xl font-black uppercase">{item.q}</h4>
-                <ChevronDown className="group-hover:rotate-180 transition-transform" />
-              </div>
-              <p class="mt-4 font-bold opacity-70 group-hover:opacity-100 transition-opacity">{item.a}</p>
-            </div>
-          ))}
-        </div>
+        <FAQ client:load />
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="bg-black text-white py-20 px-4 border-t-8 border-[#FF00E4]">
-      <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
-        <div class="space-y-6">
-          <h5 class="text-xl font-black uppercase text-[#00F0FF]">Tools</h5>
-          <ul class="space-y-2 font-bold opacity-70">
-            <li><a href="/text-sharing" class="hover:text-[#FF00E4]">Text Sharing</a></li>
-            <li><a href="/file-sharing" class="hover:text-[#FF00E4]">File Sharing</a></li>
-          </ul>
-        </div>
-        <div class="space-y-6">
-          <h5 class="text-xl font-black uppercase text-[#00F0FF]">Support</h5>
-          <ul class="space-y-2 font-bold opacity-70">
-            <li><a href="#" class="hover:text-[#FF00E4]">Help Center</a></li>
-            <li><a href="#" class="hover:text-[#FF00E4]">FAQ</a></li>
-            <li><a href="#" class="hover:text-[#FF00E4]">Contact Support</a></li>
-          </ul>
-        </div>
-        <div class="space-y-6">
-          <h5 class="text-xl font-black uppercase text-[#00F0FF]">Contact</h5>
-          <ul class="space-y-2 font-bold opacity-70">
-            <li><a href="#" class="hover:text-[#FF00E4]">Contact Us</a></li>
-            <li><a href="#" class="hover:text-[#FF00E4]">Email Support</a></li>
-          </ul>
-        </div>
-        <div class="space-y-6">
-          <h5 class="text-xl font-black uppercase text-[#00F0FF]">Legal</h5>
-          <ul class="space-y-2 font-bold opacity-70">
-            <li><a href="#" class="hover:text-[#FF00E4]">Terms of Service</a></li>
-            <li><a href="#" class="hover:text-[#FF00E4]">Privacy Policy</a></li>
-            <li><a href="#" class="hover:text-[#FF00E4]">Cookie Policy</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="max-w-6xl mx-auto mt-20 pt-8 border-t border-white/20 text-center font-bold opacity-50">
-        &copy; 2026 BoldShare. Built with high-voltage energy.
-      </div>
-    </footer>
   </main>
 </Layout>
