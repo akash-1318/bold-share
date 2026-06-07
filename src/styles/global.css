@@ -1,2 +1,88 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* ProseMirror Editor Styles */
+.ProseMirror {
+  outline: none !important;
+}
+
+.ProseMirror h1 {
+  @apply text-4xl font-black mb-4 mt-2;
+}
+
+.ProseMirror h2 {
+  @apply text-3xl font-bold mb-3 mt-2;
+}
+
+.ProseMirror h3 {
+  @apply text-2xl font-bold mb-3 mt-2;
+}
+
+.ProseMirror p {
+  @apply mb-2;
+}
+
+.ProseMirror ul {
+  @apply list-disc list-inside mb-2 ml-2;
+}
+
+.ProseMirror ol {
+  @apply list-decimal list-inside mb-2 ml-2;
+}
+
+.ProseMirror li {
+  @apply mb-1;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-black pl-4 italic opacity-80 my-4;
+}
+
+.ProseMirror pre {
+  @apply bg-[#F0F0F0] p-4 rounded border-2 border-black overflow-x-auto my-4;
+}
+
+.ProseMirror code {
+  @apply bg-[#F0F0F0] px-2 py-1 rounded font-mono text-sm;
+}
+
+.ProseMirror pre code {
+  @apply p-0 bg-transparent;
+}
+
+.ProseMirror a {
+  @apply text-[#FF00E4] underline hover:text-[#D100BB] cursor-pointer;
+}
+
+.ProseMirror strong {
+  @apply font-bold;
+}
+
+.ProseMirror em {
+  @apply italic;
+}
+
+.ProseMirror u {
+  @apply underline;
+}
+
+.ProseMirror s {
+  @apply line-through;
+}
+
+.ProseMirror [data-align="center"] {
+  @apply text-center;
+}
+
+.ProseMirror [data-align="right"] {
+  @apply text-right;
+}
+
+.ProseMirror [data-align="justify"] {
+  @apply text-justify;
+}
+
+/* Selection styling */
+.ProseMirror ::selection {
+  @apply bg-[#FF00E4] text-white;
+}
