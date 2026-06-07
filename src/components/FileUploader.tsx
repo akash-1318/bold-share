@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Upload, File as FileIcon, X, Share2, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import ShareOverlay from './ShareOverlay';
