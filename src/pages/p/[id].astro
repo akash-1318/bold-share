@@ -1,0 +1,69 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { db } from '../../lib/db';
+import { snippets } from '../../schema';
+import { eq } from 'drizzle-orm';
+import { Sparkles, Trash2, Clock } from 'lucide-react';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/');
+}
+
+const snippet = await db.query.snippets.findFirst({
+  where: eq(snippets.id, id),
+});
+
+if (!snippet) {
+  return Astro.redirect('/404');
+}
+
+const isExpired = snippet.expiresAt && new Date() > snippet.expiresAt;
+
+if (isExpired) {
+  // Automatically delete from DB when accessed after expiry
+  await db.delete(snippets).where(eq(snippets.id, id));
+}
+---
+
+<Layout>
+  <main class="max-w-4xl mx-auto p-4 py-12 space-y-8">
+    <div class="flex justify-between items-center bg-[#00F0FF] p-6 neo-brutal">
+      <h1 class="text-4xl font-black uppercase tracking-tighter flex items-center gap-2">
+        BoldShare <Sparkles className="w-8 h-8 text-[#FF00E4]" />
+      </h1>
+      <a href="/" class="bg-white px-4 py-2 neo-brutal font-black uppercase hover:bg-[#F0F0F0]">
+        Create New
+      </a>
+    </div>
+
+    {isExpired ? (
+      <div class="bg-[#FF00E4] text-white p-12 neo-brutal text-center space-y-6">
+        <Trash2 className="w-24 h-24 mx-auto animate-bounce" />
+        <h2 class="text-5xl font-black uppercase">This message has self-destructed!</h2>
+        <p class="text-xl font-bold">The link was set to expire and it did exactly that. Like a ninja.</p>
+        <div class="pt-6">
+          <a href="/" class="bg-white text-black px-8 py-4 neo-brutal font-black uppercase text-xl inline-block">
+            Go back to safety
+          </a>
+        </div>
+      </div>
+    ) : (
+      <div class="space-y-6">
+        <div class="bg-white p-8 neo-brutal min-h-[400px]">
+          <div class="prose prose-xl max-w-none prose-p:my-4 prose-headings:font-black prose-headings:uppercase prose-ul:list-disc prose-ol:list-decimal">
+            <Fragment set:html={snippet.content} />
+          </div>
+        </div>
+        
+        {snippet.expiresAt && (
+          <div class="bg-[#FFFD82] p-4 neo-brutal flex items-center gap-3 font-bold">
+            <Clock className="w-6 h-6" />
+            Expires at: {snippet.expiresAt.toLocaleString()}
+          </div>
+        )}
+      </div>
+    )}
+  </main>
+</Layout>

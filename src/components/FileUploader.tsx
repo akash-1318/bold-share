@@ -1,0 +1,188 @@
+import React, { useState, useCallback } from 'react';
+import { Upload, File, X, Share2, Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+
+const FileUploader = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [expiry, setExpiry] = useState('60'); // Default 1 hour
+  const [customExpiry, setCustomExpiry] = useState('60');
+  const [uploading, setUploading] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 100 * 1024 * 1024) {
+        setError('File size exceeds 100MB limit!');
+        return;
+      }
+      setFile(selectedFile);
+      setError(null);
+      setShareUrl(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    let minutes = parseInt(expiry === 'custom' ? customExpiry : expiry);
+    if (minutes > 1440) {
+      setError('Maximum expiry is 24 hours!');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('expiryMinutes', minutes.toString());
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.id) {
+        setShareUrl(`${window.location.origin}/f/${data.id}`);
+      } else {
+        setError(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError('A network error occurred');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-4 space-y-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#FF00E4] text-white p-6 neo-brutal">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-2">
+            FileShare <Sparkles className="w-8 h-8 text-[#00F0FF]" />
+          </h1>
+          <p className="font-bold opacity-90">Upload & Share. Securely.</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white text-black p-3 neo-brutal">
+          <div className="flex items-center gap-2">
+            <label className="font-black text-sm uppercase whitespace-nowrap">Expires in:</label>
+            <select 
+              value={expiry} 
+              onChange={(e) => setExpiry(e.target.value)}
+              className="font-bold bg-transparent focus:outline-none cursor-pointer border-b-2 border-black"
+            >
+              <option value="15">15 Minutes</option>
+              <option value="30">30 Minutes</option>
+              <option value="60">1 Hour</option>
+              <option value="1440">24 Hours</option>
+              <option value="custom">Custom...</option>
+            </select>
+          </div>
+
+          {expiry === 'custom' && (
+            <div className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-200">
+              <input 
+                type="number" 
+                value={customExpiry}
+                onChange={(e) => setCustomExpiry(e.target.value)}
+                min="1"
+                max="1440"
+                className="w-20 font-bold border-b-2 border-black focus:outline-none px-1"
+              />
+              <span className="font-black text-xs uppercase">Mins</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white neo-brutal p-12 text-center space-y-8 relative">
+        {!file ? (
+          <label className="border-4 border-dashed border-black p-16 block cursor-pointer hover:bg-[#F0F0F0] transition-colors group">
+            <input type="file" className="hidden" onChange={onFileChange} />
+            <div className="flex flex-col items-center gap-4">
+              <div className="bg-[#00F0FF] p-6 neo-brutal group-hover:-rotate-12 transition-transform">
+                <Upload className="w-12 h-12" />
+              </div>
+              <div>
+                <p className="text-2xl font-black uppercase">Click to Select File</p>
+                <p className="font-bold opacity-60">Maximum file size: 100MB</p>
+              </div>
+            </div>
+          </label>
+        ) : (
+          <div className="border-4 border-black p-8 flex flex-col items-center gap-6 animate-in zoom-in duration-200">
+            <div className="bg-[#FFFD82] p-6 neo-brutal">
+              <File className="w-16 h-16" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-black break-all">{file.name}</p>
+              <p className="font-bold opacity-60">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+            </div>
+            <button 
+              onClick={() => setFile(null)}
+              className="bg-black text-white p-2 neo-brutal hover:bg-red-500 transition-colors"
+            >
+              <X />
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-100 border-4 border-red-500 p-4 text-red-500 font-black uppercase flex items-center justify-center gap-3">
+            <AlertCircle /> {error}
+          </div>
+        )}
+
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={handleUpload}
+            disabled={uploading || !file}
+            className="bg-[#00F0FF] text-black text-2xl font-black px-12 py-6 neo-brutal flex items-center gap-4 hover:bg-[#00D8E6] disabled:opacity-50 disabled:cursor-not-allowed group transition-all"
+          >
+            {uploading ? (
+              <Loader2 className="animate-spin w-8 h-8" />
+            ) : (
+              <>
+                UPLOAD & SHARE <Share2 className="w-8 h-8 group-hover:rotate-12 transition-transform" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {shareUrl && (
+        <div className="bg-white p-8 neo-brutal text-center space-y-6 animate-in fade-in zoom-in duration-300 border-t-8 border-[#FF00E4]">
+          <div className="flex items-center justify-center gap-3 text-[#FF00E4]">
+             <CheckCircle className="w-10 h-10" />
+             <h2 className="text-3xl font-black uppercase">Upload Successful!</h2>
+          </div>
+          <div className="flex items-center gap-2 bg-[#F0F0F0] p-4 border-2 border-black font-mono break-all text-lg">
+            {shareUrl}
+          </div>
+          <div className="flex flex-col items-center gap-6">
+            <div className="bg-white p-4 border-4 border-black inline-block shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+               <QRCodeSVG value={shareUrl} size={160} />
+            </div>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(shareUrl);
+                alert('Copied to clipboard!');
+              }}
+              className="bg-[#FFFD82] font-black px-8 py-4 neo-brutal uppercase text-xl hover:bg-[#EEEB6D]"
+            >
+              Copy Link
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FileUploader;
