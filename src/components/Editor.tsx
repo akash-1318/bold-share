@@ -1,11 +1,58 @@
 import React, { useState } from 'react';
+import { Extension } from '@tiptap/core';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Link from '@tiptap/extension-link';
-import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Share2, Loader2, Sparkles, Heading1, Heading2, Heading3, Code2, Quote, Strikethrough, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, Trash2 } from 'lucide-react';
+import { StarterKit } from '@tiptap/starter-kit';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import { Highlight } from '@tiptap/extension-highlight';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { Underline } from '@tiptap/extension-underline';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Link } from '@tiptap/extension-link';
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Share2, Loader2, Sparkles, Heading1, Heading2, Heading3, Code2, Quote, Strikethrough, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, Trash2, Type, Palette, Highlighter, Smile } from 'lucide-react';
 import ShareOverlay from './ShareOverlay';
+
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {};
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize: (fontSize: string) => ({ chain }: any) => {
+        return chain().setMark('textStyle', { fontSize }).run();
+      },
+      unsetFontSize: () => ({ chain }: any) => {
+        return chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run();
+      },
+    } as any;
+  },
+});
+
+const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '30', '36', '48'];
 
 const Editor = () => {
   const [expiry, setExpiry] = useState('60'); // Default to 60 minutes (1 hour)
@@ -16,6 +63,7 @@ const Editor = () => {
   const [, setEditorVersion] = useState(0);
   const [linkUrl, setLinkUrl] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
+  const [showCustomSizeInput, setShowCustomSizeInput] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -24,6 +72,11 @@ const Editor = () => {
           levels: [1, 2, 3],
         },
       }),
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      FontSize,
+      FontFamily,
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -35,10 +88,11 @@ const Editor = () => {
     content: '',
     onUpdate: ({ editor }) => {
       setHasContent(!editor.isEmpty);
-      setEditorVersion((version) => version + 1);
     },
-    onSelectionUpdate: ({ editor }) => {
-      setEditorVersion((version) => version + 1);
+    onTransaction: ({ editor }) => {
+      setEditorVersion((v) => v + 1);
+      const size = editor.getAttributes('textStyle').fontSize?.replace('px', '') || '';
+      setShowCustomSizeInput(!FONT_SIZES.includes(size) && size !== '');
     },
     editorProps: {
       attributes: {
@@ -100,6 +154,8 @@ const Editor = () => {
 
   if (!editor) return null;
 
+  const currentFontSize = editor.getAttributes('textStyle').fontSize?.replace('px', '') || '';
+
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#00F0FF] p-6 neo-brutal">
@@ -144,6 +200,81 @@ const Editor = () => {
 
       <div className="bg-white neo-brutal overflow-hidden">
         <div className="border-b-4 border-black p-2 flex flex-wrap gap-1 bg-[#FFFD82]">
+          {/* Font Size Selector */}
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <select 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'custom') {
+                    setShowCustomSizeInput(true);
+                  } else {
+                    setShowCustomSizeInput(false);
+                    if (val === '') {
+                      (editor as any).chain().focus().unsetFontSize().run();
+                    } else {
+                      (editor as any).chain().focus().setFontSize(`${val}px`).run();
+                    }
+                  }
+                }}
+                className="appearance-none bg-white border-2 border-black pl-3 pr-8 py-2 font-black text-xs uppercase neo-brutal focus:outline-none cursor-pointer hover:bg-[#F0F0F0] min-w-[80px]"
+                value={showCustomSizeInput ? 'custom' : FONT_SIZES.includes(currentFontSize) ? currentFontSize : currentFontSize ? 'custom' : ''}
+              >
+                <option value="">Size</option>
+                {FONT_SIZES.map(size => (
+                  <option key={size} value={size}>{size}px</option>
+                ))}
+                <option value="custom">Custom...</option>
+              </select>
+              <Type size={14} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {(showCustomSizeInput || (!FONT_SIZES.includes(currentFontSize) && currentFontSize !== '')) && (
+              <div className="flex items-center gap-1 animate-in slide-in-from-left-2 duration-200">
+                <input 
+                  type="number" 
+                  placeholder="px"
+                  value={currentFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) (editor as any).chain().focus().setFontSize(`${val}px`).run();
+                    else (editor as any).chain().focus().unsetFontSize().run();
+                  }}
+                  className="w-16 bg-white border-2 border-black px-2 py-2 font-black text-xs neo-brutal focus:outline-none"
+                />
+                <span className="font-black text-xs uppercase hidden sm:inline">px</span>
+              </div>
+            )}
+          </div>
+
+          <div className="w-1 h-8 bg-black hidden sm:block" />
+
+          {/* Font Family Selector */}
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <select 
+                onChange={(e) => {
+                  if (e.target.value === '') {
+                    editor.chain().focus().unsetFontFamily().run();
+                  } else {
+                    editor.chain().focus().setFontFamily(e.target.value).run();
+                  }
+                }}
+                className="appearance-none bg-white border-2 border-black pl-3 pr-8 py-2 font-black text-xs uppercase neo-brutal focus:outline-none cursor-pointer hover:bg-[#F0F0F0] min-w-[120px]"
+                value={editor.getAttributes('textStyle').fontFamily || ''}
+              >
+                <option value="">Default Font</option>
+                <option value="serif">Elegant Serif</option>
+                <option value="monospace">Tech Mono</option>
+                <option value="'Comic Sans MS', cursive">Playful Comic</option>
+                <option value="Impact">Bold Impact</option>
+              </select>
+              <Type size={14} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="w-1 h-8 bg-black hidden sm:block" />
+
           {/* Text Formatting Row */}
           <div className="flex flex-wrap gap-1">
             <MenuButton 
@@ -261,6 +392,40 @@ const Editor = () => {
               title="Align Right"
             >
               <AlignRight size={18} />
+            </MenuButton>
+          </div>
+
+          <div className="w-1 h-8 bg-black hidden sm:block" />
+
+          {/* Colors & Emojis */}
+          <div className="flex flex-wrap gap-1">
+            <MenuButton
+              onClick={() => {}}
+              title="Text Color"
+            >
+              <label className="cursor-pointer flex items-center justify-center">
+                <Palette size={18} />
+                <input
+                  type="color"
+                  className="sr-only"
+                  onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
+                  value={editor.getAttributes('textStyle').color || '#000000'}
+                />
+              </label>
+            </MenuButton>
+            <MenuButton
+              onClick={() => {}}
+              title="Text Background (Highlight)"
+            >
+              <label className="cursor-pointer flex items-center justify-center">
+                <Highlighter size={18} />
+                <input
+                  type="color"
+                  className="sr-only"
+                  onInput={(e) => editor.chain().focus().setHighlight({ color: (e.target as HTMLInputElement).value }).run()}
+                  value={editor.getAttributes('highlight').color || '#ffff00'}
+                />
+              </label>
             </MenuButton>
           </div>
 
