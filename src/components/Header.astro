@@ -1,5 +1,6 @@
 ---
-import { Sparkles, FileText, FilePlus } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import SupportButton from './SupportButton';
 ---
 
 <header class="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b-4 border-black px-4 py-4 sm:px-8">
@@ -14,19 +15,10 @@ import { Sparkles, FileText, FilePlus } from 'lucide-react';
     <nav class="hidden md:flex items-center gap-6 font-black uppercase text-sm">
       <a href="/#features" class="hover:text-[#FF00E4] transition-colors">Features</a>
       <a href="/#faq" class="hover:text-[#FF00E4] transition-colors">FAQ</a>
-      <div class="w-1 h-6 bg-black mx-2" />
-      <a href="/text-sharing" class="hover:text-[#FF00E4] flex items-center gap-2 transition-colors">
-        <FileText size={18} /> Text
-      </a>
-      <a href="/file-sharing" class="hover:text-[#FF00E4] flex items-center gap-2 transition-colors">
-        <FilePlus size={18} /> Files
-      </a>
     </nav>
 
     <div class="flex items-center gap-4">
-      <a href="/text-sharing" class="hidden sm:block bg-[#FF00E4] text-white px-4 py-2 neo-brutal text-sm font-black uppercase hover:bg-[#D100BB] transition-colors">
-        Start Sharing
-      </a>
+      <SupportButton client:load />
     </div>
   </div>
 </header>
