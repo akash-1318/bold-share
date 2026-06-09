@@ -5,7 +5,7 @@ import ShareOverlay from './ShareOverlay';
 
 const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [expiry, setExpiry] = useState('60'); // Default 1 hour
+  const [expiry, setExpiry] = useState('60');
   const [customExpiry, setCustomExpiry] = useState('60');
   const [uploading, setUploading] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -14,8 +14,8 @@ const FileUploader = () => {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 100 * 1024 * 1024) {
-        setError('File size exceeds 100MB limit!');
+      if (selectedFile.size > 1024 * 1024 * 1024) {
+        setError('File size exceeds 1GB limit!');
         return;
       }
       setFile(selectedFile);
@@ -36,25 +36,60 @@ const FileUploader = () => {
     setUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('expiryMinutes', minutes.toString());
-
     try {
-      const response = await fetch('/api/upload', {
+      // 1. Get signed upload URL
+      const urlResponse = await fetch('/api/get-upload-url', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name }),
       });
 
-      const data = await response.json();
-      if (data.id) {
-        setShareUrl(`${window.location.origin}/f/${data.id}`);
-      } else {
-        setError(data.error || 'Upload failed');
+      const urlData = await urlResponse.json();
+      if (!urlResponse.ok) throw new Error(urlData.error || 'Failed to get upload URL');
+
+      const { signedUrl, path, id } = urlData;
+
+      // 2. Upload file directly to Supabase via the signed URL
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        let errorMsg = 'Direct upload failed';
+        try {
+          const errorData = await uploadResponse.json();
+          errorMsg = `Supabase Error: ${errorData.message || errorData.error}`;
+        } catch (e) {
+          errorMsg = `Upload failed with status ${uploadResponse.status}`;
+        }
+        throw new Error(errorMsg);
       }
-    } catch (err) {
+
+      // 3. Finalize upload metadata in the database
+      const finalizeResponse = await fetch('/api/finalize-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          fileName: file.name,
+          fileType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          filePath: path,
+          expiryMinutes: minutes,
+        }),
+      });
+
+      const finalizeData = await finalizeResponse.json();
+      if (!finalizeResponse.ok) throw new Error(finalizeData.error || 'Failed to finalize upload');
+
+      setShareUrl(`${window.location.origin}/f/${id}`);
+    } catch (err: any) {
       console.error('Upload error:', err);
-      setError('A network error occurred');
+      setError(err.message || 'A network error occurred');
     } finally {
       setUploading(false);
     }
@@ -74,8 +109,8 @@ const FileUploader = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white text-black p-3 neo-brutal w-full">
           <div className="flex items-center gap-2">
             <label className="font-black text-sm uppercase whitespace-nowrap">Expires in:</label>
-            <select 
-              value={expiry} 
+            <select
+              value={expiry}
               onChange={(e) => setExpiry(e.target.value)}
               className="font-bold bg-transparent focus:outline-none cursor-pointer border-b-2 border-black"
             >
@@ -89,8 +124,8 @@ const FileUploader = () => {
 
           {expiry === 'custom' && (
             <div className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-200">
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={customExpiry}
                 onChange={(e) => setCustomExpiry(e.target.value)}
                 min="1"
@@ -113,7 +148,7 @@ const FileUploader = () => {
               </div>
               <div>
                 <p className="text-2xl font-black uppercase">Click to Select File</p>
-                <p className="font-bold opacity-60">Maximum file size: 100MB</p>
+                <p className="font-bold opacity-60">Maximum file size: 1GB</p>
               </div>
             </div>
           </label>
@@ -126,7 +161,7 @@ const FileUploader = () => {
               <p className="text-2xl font-black break-all">{file.name}</p>
               <p className="font-bold opacity-60">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
             </div>
-            <button 
+            <button
               onClick={() => setFile(null)}
               className="bg-black text-white p-2 neo-brutal hover:bg-red-500 transition-colors"
             >
@@ -159,10 +194,10 @@ const FileUploader = () => {
       </div>
 
       {shareUrl && (
-        <ShareOverlay 
-          url={shareUrl} 
-          expiryMessage={getExpiryMessage()} 
-          onClose={() => setShareUrl(null)} 
+        <ShareOverlay
+          url={shareUrl}
+          expiryMessage={getExpiryMessage()}
+          onClose={() => setShareUrl(null)}
         />
       )}
     </div>
