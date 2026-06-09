@@ -14,8 +14,8 @@ const FileUploader = () => {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 1024 * 1024 * 1024) {
-        setError('File size exceeds 1GB limit!');
+      if (selectedFile.size > 50 * 1024 * 1024) {
+        setError('File size exceeds 50MB limit!');
         return;
       }
       setFile(selectedFile);
@@ -148,7 +148,7 @@ const FileUploader = () => {
               </div>
               <div>
                 <p className="text-2xl font-black uppercase">Click to Select File</p>
-                <p className="font-bold opacity-60">Maximum file size: 1GB</p>
+                <p className="font-bold opacity-60">Maximum file size: 50MB</p>
               </div>
             </div>
           </label>
