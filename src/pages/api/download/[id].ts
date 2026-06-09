@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '../../../lib/db';
 import { files } from '../../../schema';
 import { eq } from 'drizzle-orm';
-import { createReadStream } from 'fs';
-import { stat } from 'fs/promises';
+import { supabase } from '../../../lib/supabase';
 
 export const GET: APIRoute = async ({ params }) => {
   const { id } = params;
@@ -21,13 +20,19 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   try {
-    const fileStat = await stat(fileInfo.path);
-    const stream = createReadStream(fileInfo.path);
+    const { data, error } = await supabase.storage
+      .from('uploads')
+      .download(fileInfo.path);
 
-    return new Response(stream as any, {
+    if (error || !data) {
+      console.error('Supabase download error:', error);
+      return new Response('Error retrieving file from storage', { status: 500 });
+    }
+
+    return new Response(data as any, {
       headers: {
         'Content-Type': fileInfo.type,
-        'Content-Length': fileStat.size.toString(),
+        'Content-Length': fileInfo.size.toString(),
         'Content-Disposition': `attachment; filename="${fileInfo.name}"`,
       },
     });

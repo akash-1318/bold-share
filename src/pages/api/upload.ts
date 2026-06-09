@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '../../lib/db';
 import { files } from '../../schema';
 import { nanoid } from 'nanoid';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { supabase } from '../../lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -20,15 +19,21 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const id = nanoid(10);
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    const filePath = path.join(uploadDir, `${id}-${file.name}`);
+    const fileName = `${id}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const filePath = fileName;
 
-    // Ensure directory exists
-    await mkdir(uploadDir, { recursive: true });
-
-    // Write file to disk
+    // Upload to Supabase Storage
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
+    const { error: uploadError } = await supabase.storage
+      .from('uploads')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return new Response(JSON.stringify({ error: 'Failed to upload file to storage' }), { status: 500 });
+    }
 
     const expiresAt = expiryMinutes ? new Date(Date.now() + expiryMinutes * 60 * 1000) : null;
 

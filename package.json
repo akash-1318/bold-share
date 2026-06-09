@@ -14,21 +14,26 @@
   "dependencies": {
     "@astrojs/node": "^10.1.3",
     "@astrojs/react": "^5.0.7",
+    "@supabase/supabase-js": "^2.108.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
+    "@tiptap/extension-color": "^3.26.0",
+    "@tiptap/extension-font-family": "^3.26.0",
+    "@tiptap/extension-highlight": "^3.26.0",
     "@tiptap/extension-link": "^3.26.0",
     "@tiptap/extension-text-align": "^3.26.0",
+    "@tiptap/extension-text-style": "^3.26.0",
     "@tiptap/extension-underline": "^3.26.0",
     "@tiptap/react": "^3.26.0",
     "@tiptap/starter-kit": "^3.26.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.4.4",
-    "better-sqlite3": "^12.10.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.17.0",
     "nanoid": "^5.1.11",
+    "postgres": "^3.4.9",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -36,7 +41,7 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.9.2",
     "drizzle-kit": "^0.31.10"
   }
 }
