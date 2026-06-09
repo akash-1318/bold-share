@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Copy, Share2, Clock, CheckCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -9,9 +9,12 @@ interface ShareOverlayProps {
 }
 
 const ShareOverlay: React.FC<ShareOverlayProps> = ({ url, expiryMessage, onClose }) => {
+  const [showToast, setShowToast] = useState(false);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const handleNativeShare = async () => {
@@ -78,6 +81,11 @@ const ShareOverlay: React.FC<ShareOverlayProps> = ({ url, expiryMessage, onClose
           </div>
         </div>
       </div>
+      {showToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] bg-[#FFFD82] border-4 border-black px-6 py-3 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top-4 fade-in duration-200">
+          Link copied to clipboard!
+        </div>
+      )}
     </div>
   );
 };
