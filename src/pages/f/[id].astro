@@ -37,7 +37,7 @@ if (!fileInfo) {
 const isExpired = fileInfo.expiresAt && new Date() > fileInfo.expiresAt;
 ---
 
-<Layout>
+<Layout title={`Shared File: ${fileInfo.name} — BoldShare`} description="A temporary, self-destructing file shared via BoldShare." noindex={true}>
   <main class="max-w-4xl mx-auto p-4 py-12 space-y-8">
     {isExpired ? (
       <div class="bg-black text-white p-12 neo-brutal text-center space-y-6">

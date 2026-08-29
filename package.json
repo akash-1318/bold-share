@@ -1,5 +1,5 @@
 {
-  "name": "blue-belt",
+  "name": "bold-share",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -14,6 +14,7 @@
   "dependencies": {
     "@astrojs/node": "^10.1.3",
     "@astrojs/react": "^5.0.7",
+    "@astrojs/sitemap": "^3.7.3",
     "@supabase/supabase-js": "^2.108.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",

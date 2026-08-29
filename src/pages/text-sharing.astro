@@ -1,9 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Editor from '../components/Editor';
+
+const title = 'Share Formatted Text Online Free — No Signup | BoldShare';
+const description = 'Write and share rich-formatted text with a self-destructing link. Bold, lists, and more — no account required, gone automatically when it expires.';
 ---
 
-<Layout>
+<Layout title={title} description={description}>
 	<main>
 		<Editor client:load />
 	</main>

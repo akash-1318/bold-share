@@ -1,10 +1,45 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import FAQ from '../components/FAQ';
+import { faqItems } from '../lib/faq';
 import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, FilePlus } from 'lucide-react';
+
+const title = 'BoldShare — Share Text & Files Instantly, Self-Destructing Links';
+const description = 'Share formatted text and files up to 50MB with anyone in seconds. No signup, no tracking — links self-destruct automatically after the expiry you choose.';
+
+const webAppSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'BoldShare',
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  description,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a,
+    },
+  })),
+};
 ---
 
-<Layout>
+<Layout title={title} description={description}>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(webAppSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </Fragment>
   <main>
     <!-- Hero Section -->
     <section class="relative py-24 px-4 bg-[#00F0FF] border-b-8 border-black">
@@ -67,7 +102,7 @@ import { Sparkles, FileText, Share2, ShieldCheck, Zap, QrCode, ArrowRight, FileP
               </div>
               <h3 class="text-4xl font-black uppercase">File Sharing</h3>
               <ul class="space-y-3 font-bold text-lg opacity-90">
-                <li class="flex items-center gap-2"><Zap size={20} /> Upload files up to 1GB</li>
+                <li class="flex items-center gap-2"><Zap size={20} /> Upload files up to 50MB</li>
                 <li class="flex items-center gap-2"><QrCode size={20} /> Share via link or secure QR</li>
                 <li class="flex items-center gap-2"><ShieldCheck size={20} /> Automatic file deletion on expiry</li>
               </ul>
