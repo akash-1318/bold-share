@@ -2,7 +2,11 @@ import type { APIRoute } from 'astro';
 import { db } from '../../lib/db';
 import { files } from '../../schema';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
+  if (!locals.user) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { id, fileName, fileType, fileSize, filePath, expiryMinutes } = body;
@@ -15,6 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     await db.insert(files).values({
       id,
+      userId: locals.user.id,
       name: fileName,
       type: fileType,
       size: fileSize,

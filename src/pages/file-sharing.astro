@@ -2,6 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import FileUploader from '../components/FileUploader';
 
+if (!Astro.locals.user) {
+  return Astro.redirect('/login');
+}
+
 const title = 'Share Files Online Free — Temporary File Links | BoldShare';
 const description = 'Upload files up to 50MB and share a link that self-destructs automatically. No signup, no tracking, automatic deletion on expiry.';
 ---

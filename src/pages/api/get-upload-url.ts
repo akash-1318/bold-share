@@ -1,14 +1,32 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import { nanoid } from 'nanoid';
+import { getUsageBytes, getSubscriptionStatus } from '../../lib/usage';
+import { getLimitBytes, hasQuota } from '../../lib/plans';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
+  if (!locals.user) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+  }
+
   try {
     const body = await request.json();
-    const { fileName } = body;
+    const { fileName, fileSize } = body;
 
-    if (!fileName) {
-      return new Response(JSON.stringify({ error: 'Filename is required' }), { status: 400 });
+    if (!fileName || !fileSize) {
+      return new Response(JSON.stringify({ error: 'Filename and file size are required' }), { status: 400 });
+    }
+
+    const [usage, status] = await Promise.all([
+      getUsageBytes(locals.user.id),
+      getSubscriptionStatus(locals.user.id),
+    ]);
+
+    if (!hasQuota(usage, fileSize, status)) {
+      return new Response(
+        JSON.stringify({ error: 'quota_exceeded', usage, limit: getLimitBytes(status) }),
+        { status: 403 }
+      );
     }
 
     const id = nanoid(10);

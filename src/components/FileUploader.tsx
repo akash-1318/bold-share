@@ -41,10 +41,17 @@ const FileUploader = () => {
       const urlResponse = await fetch('/api/get-upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name }),
+        body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
       });
 
       const urlData = await urlResponse.json();
+
+      if (urlResponse.status === 403 && urlData.error === 'quota_exceeded') {
+        const usedMB = (urlData.usage / (1024 * 1024)).toFixed(1);
+        const limitMB = (urlData.limit / (1024 * 1024)).toFixed(0);
+        throw new Error(`You've used ${usedMB}MB of your ${limitMB}MB. Delete some files, or upgrade to Premium for 1GB.`);
+      }
+
       if (!urlResponse.ok) throw new Error(urlData.error || 'Failed to get upload URL');
 
       const { signedUrl, path, id } = urlData;
