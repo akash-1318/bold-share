@@ -1,6 +1,9 @@
 ---
 import { Sparkles } from 'lucide-react';
 import SupportButton from './SupportButton';
+import LogoutButton from './LogoutButton';
+
+const user = Astro.locals.user;
 ---
 
 <header class="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b-4 border-black px-4 py-4 sm:px-8">
@@ -15,9 +18,15 @@ import SupportButton from './SupportButton';
     <nav class="hidden md:flex items-center gap-6 font-black uppercase text-sm">
       <a href="/#features" class="hover:text-[#FF00E4] transition-colors">Features</a>
       <a href="/#faq" class="hover:text-[#FF00E4] transition-colors">FAQ</a>
+      {user && <a href="/dashboard" class="hover:text-[#FF00E4] transition-colors">Dashboard</a>}
     </nav>
 
     <div class="flex items-center gap-4">
+      {user ? (
+        <LogoutButton client:load />
+      ) : (
+        <a href="/login" class="font-black uppercase text-sm hover:text-[#FF00E4] transition-colors">Log In</a>
+      )}
       <SupportButton client:load />
     </div>
   </div>
