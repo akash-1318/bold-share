@@ -1,0 +1,36 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FileManager from '../components/FileManager';
+import { db } from '../lib/db';
+import { files } from '../schema';
+import { and, eq, gt, isNull, or } from 'drizzle-orm';
+import { getUsageBytes, getSubscriptionStatus } from '../lib/usage';
+import { getLimitBytes } from '../lib/plans';
+
+if (!Astro.locals.user) {
+  return Astro.redirect('/login');
+}
+
+const userId = Astro.locals.user.id;
+
+const [activeFiles, usageBytes, status] = await Promise.all([
+  db.query.files.findMany({
+    where: and(eq(files.userId, userId), or(isNull(files.expiresAt), gt(files.expiresAt, new Date()))),
+  }),
+  getUsageBytes(userId),
+  getSubscriptionStatus(userId),
+]);
+
+const limitBytes = getLimitBytes(status);
+
+const fileRows = activeFiles.map((f) => ({
+  id: f.id,
+  name: f.name,
+  size: f.size,
+  expiresAt: f.expiresAt ? f.expiresAt.toISOString() : null,
+}));
+---
+
+<Layout title="My Files — BoldShare" description="Manage your uploaded files and storage usage." noindex={true}>
+  <FileManager client:load files={fileRows} usageBytes={usageBytes} limitBytes={limitBytes} />
+</Layout>
