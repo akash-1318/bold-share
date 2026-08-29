@@ -18,6 +18,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(JSON.stringify({ error: 'Missing or invalid required fields' }), { status: 400 });
     }
 
+    // Ensure filePath is actually derived from this id + fileName, so a caller can't
+    // claim ownership of a storage object (e.g. another user's file) by supplying a
+    // filePath that get-upload-url never issued for this id.
+    const expectedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const expectedPath = `${id}-${expectedFileName}`;
+
+    if (filePath !== expectedPath) {
+      return new Response(JSON.stringify({ error: 'Invalid file path' }), { status: 400 });
+    }
+
     // Verify the actual file size in Supabase Storage
     const { data: listData, error: listError } = await supabase.storage
       .from('uploads')

@@ -9,10 +9,10 @@ export const faqItems = [
   },
   {
     q: 'Is it secure?',
-    a: "Absolutely. We don't track who you are. Content is automatically deleted from our servers the moment it expires.",
+    a: "Absolutely. We don't track who you are. Content is automatically deleted from our servers the moment it expires. Text sharing needs no account; file uploads require a free account so we can enforce storage limits.",
   },
   {
     q: "What's the maximum file size?",
-    a: 'Currently, you can upload files up to 50MB for free.',
+    a: 'Currently, you can upload files up to 50MB for free with a BoldShare account.',
   },
 ];

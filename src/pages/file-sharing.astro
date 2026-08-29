@@ -3,16 +3,22 @@ import Layout from '../layouts/Layout.astro';
 import FileUploader from '../components/FileUploader';
 import AdSlot from '../components/AdSlot.astro';
 import { getSubscriptionStatus } from '../lib/usage';
+import type { SubscriptionStatus } from '../lib/plans';
 
 if (!Astro.locals.user) {
   return Astro.redirect('/login');
 }
 
-const status = await getSubscriptionStatus(Astro.locals.user.id);
+let status: SubscriptionStatus = 'free';
+try {
+  status = await getSubscriptionStatus(Astro.locals.user.id);
+} catch (error) {
+  console.error('Failed to get subscription status:', error);
+}
 const isPremium = status === 'active';
 
 const title = 'Share Files Online Free — Temporary File Links | BoldShare';
-const description = 'Upload files up to 50MB and share a link that self-destructs automatically. No signup, no tracking, automatic deletion on expiry.';
+const description = 'Upload files up to 50MB and share a link that self-destructs automatically. Free account required, automatic deletion on expiry.';
 ---
 
 <Layout title={title} description={description}>

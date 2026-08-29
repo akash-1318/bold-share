@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, uuid, index } from 'drizzle-orm/pg-core';
 
 export const snippets = pgTable('snippets', {
   id: text('id').primaryKey(), // nanoid short link
@@ -16,7 +16,9 @@ export const files = pgTable('files', {
   path: text('path').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   expiresAt: timestamp('expires_at'),
-});
+}, (table) => ({
+  userIdIdx: index('files_user_id_idx').on(table.userId),
+}));
 
 export const subscriptions = pgTable('subscriptions', {
   userId: uuid('user_id').primaryKey(),

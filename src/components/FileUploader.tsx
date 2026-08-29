@@ -3,6 +3,12 @@ import React, { useState, useCallback } from 'react';
 import { Upload, File as FileIcon, X, Share2, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import ShareOverlay from './ShareOverlay';
 
+const formatQuotaMessage = (usage: number, limit: number) => {
+  const usedMB = (usage / (1024 * 1024)).toFixed(1);
+  const limitMB = (limit / (1024 * 1024)).toFixed(0);
+  return `You've used ${usedMB}MB of your ${limitMB}MB. Delete some files, or upgrade to Premium for 1GB.`;
+};
+
 const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
   const [expiry, setExpiry] = useState('60');
@@ -47,9 +53,7 @@ const FileUploader = () => {
       const urlData = await urlResponse.json();
 
       if (urlResponse.status === 403 && urlData.error === 'quota_exceeded') {
-        const usedMB = (urlData.usage / (1024 * 1024)).toFixed(1);
-        const limitMB = (urlData.limit / (1024 * 1024)).toFixed(0);
-        throw new Error(`You've used ${usedMB}MB of your ${limitMB}MB. Delete some files, or upgrade to Premium for 1GB.`);
+        throw new Error(formatQuotaMessage(urlData.usage, urlData.limit));
       }
 
       if (!urlResponse.ok) throw new Error(urlData.error || 'Failed to get upload URL');
@@ -91,6 +95,11 @@ const FileUploader = () => {
       });
 
       const finalizeData = await finalizeResponse.json();
+
+      if (finalizeResponse.status === 403 && finalizeData.error === 'quota_exceeded') {
+        throw new Error(formatQuotaMessage(finalizeData.usage, finalizeData.limit));
+      }
+
       if (!finalizeResponse.ok) throw new Error(finalizeData.error || 'Failed to finalize upload');
 
       setShareUrl(`${window.location.origin}/f/${id}`);

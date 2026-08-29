@@ -29,7 +29,7 @@ const LoginForm = () => {
   const handleSignUp = async () => {
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
     setLoading(false);
     if (error) {
       setError(error.message);

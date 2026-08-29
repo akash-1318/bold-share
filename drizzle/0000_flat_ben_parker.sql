@@ -1,3 +1,13 @@
+-- NOTE: This project has no prior migration history, but `files` and `snippets`
+-- already exist in the real database (created before this migrations folder
+-- existed). Applying this file via `drizzle-kit migrate` will fail with
+-- "relation already exists". Instead, apply this schema change with:
+--   npx drizzle-kit push
+-- which diffs directly against the live database schema (adding user_id,
+-- the index, and the subscriptions table) rather than replaying migration
+-- history. Once applied this way, this generated migration file can be
+-- treated as documentation of the intended schema, not as an executable step.
+
 CREATE TABLE "files" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,

@@ -1,5 +1,6 @@
 ---
 const clientId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
+const slotId = import.meta.env.PUBLIC_ADSENSE_SLOT_ID;
 ---
 
 {clientId && (
@@ -8,10 +9,14 @@ const clientId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
       class="adsbygoogle"
       style="display:block"
       data-ad-client={clientId}
+      data-ad-slot={slotId}
       data-ad-format="auto"
       data-full-width-responsive="true"
     ></ins>
-    <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`} crossorigin="anonymous"></script>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`} crossorigin="anonymous" is:inline></script>
+    <script is:inline>
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adsbygoogle.push({});
+    </script>
   </div>
 )}
