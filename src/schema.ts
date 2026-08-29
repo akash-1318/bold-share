@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, uuid } from 'drizzle-orm/pg-core';
 
 export const snippets = pgTable('snippets', {
   id: text('id').primaryKey(), // nanoid short link
@@ -9,10 +9,21 @@ export const snippets = pgTable('snippets', {
 
 export const files = pgTable('files', {
   id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
   name: text('name').notNull(),
   type: text('type').notNull(),
   size: integer('size').notNull(),
   path: text('path').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   expiresAt: timestamp('expires_at'),
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  userId: uuid('user_id').primaryKey(),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  status: text('status').notNull().default('free'), // 'free' | 'active' | 'past_due' | 'canceled'
+  currentPeriodEnd: timestamp('current_period_end'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
