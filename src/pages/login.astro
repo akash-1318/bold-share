@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/LoginForm';
+
+if (Astro.locals.user) {
+  return Astro.redirect('/file-sharing');
+}
+---
+
+<Layout title="Log In — BoldShare" description="Log in to BoldShare to upload and share files." noindex={true}>
+  <main class="py-16">
+    <LoginForm client:load />
+  </main>
+</Layout>
