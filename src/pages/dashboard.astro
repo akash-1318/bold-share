@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import FileManager from '../components/FileManager';
+import AdSlot from '../components/AdSlot.astro';
 import { db } from '../lib/db';
 import { files } from '../schema';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
@@ -22,6 +23,7 @@ const [activeFiles, usageBytes, status] = await Promise.all([
 ]);
 
 const limitBytes = getLimitBytes(status);
+const isPremium = status === 'active';
 
 const fileRows = activeFiles.map((f) => ({
   id: f.id,
@@ -33,4 +35,5 @@ const fileRows = activeFiles.map((f) => ({
 
 <Layout title="My Files — BoldShare" description="Manage your uploaded files and storage usage." noindex={true}>
   <FileManager client:load files={fileRows} usageBytes={usageBytes} limitBytes={limitBytes} />
+  {!isPremium && <AdSlot />}
 </Layout>
