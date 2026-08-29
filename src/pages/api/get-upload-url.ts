@@ -13,8 +13,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const { fileName, fileSize } = body;
 
-    if (!fileName || !fileSize) {
-      return new Response(JSON.stringify({ error: 'Filename and file size are required' }), { status: 400 });
+    if (!fileName || typeof fileSize !== 'number' || !Number.isFinite(fileSize) || fileSize <= 0) {
+      return new Response(JSON.stringify({ error: 'Filename and valid file size are required' }), { status: 400 });
     }
 
     const [usage, status] = await Promise.all([

@@ -1,6 +1,9 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../lib/db';
 import { files } from '../../schema';
+import { supabase } from '../../lib/supabase';
+import { getUsageBytes, getSubscriptionStatus } from '../../lib/usage';
+import { getLimitBytes, hasQuota } from '../../lib/plans';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   if (!locals.user) {
@@ -11,8 +14,40 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const { id, fileName, fileType, fileSize, filePath, expiryMinutes } = body;
 
-    if (!id || !fileName || !fileType || !fileSize || !filePath) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
+    if (!id || !fileName || !fileType || typeof fileSize !== 'number' || !Number.isFinite(fileSize) || fileSize <= 0 || !filePath) {
+      return new Response(JSON.stringify({ error: 'Missing or invalid required fields' }), { status: 400 });
+    }
+
+    // Verify the actual file size in Supabase Storage
+    const { data: listData, error: listError } = await supabase.storage
+      .from('uploads')
+      .list('', { search: filePath });
+
+    if (listError || !listData || listData.length === 0) {
+      return new Response(JSON.stringify({ error: 'Could not verify uploaded file' }), { status: 500 });
+    }
+
+    const actualFile = listData.find((f) => f.name === filePath);
+    if (!actualFile || typeof actualFile.metadata?.size !== 'number') {
+      return new Response(JSON.stringify({ error: 'Could not verify uploaded file' }), { status: 500 });
+    }
+
+    const actualSize = actualFile.metadata.size;
+
+    // Re-check quota with the actual file size
+    const [usage, status] = await Promise.all([
+      getUsageBytes(locals.user.id),
+      getSubscriptionStatus(locals.user.id),
+    ]);
+
+    if (!hasQuota(usage, actualSize, status)) {
+      // Delete the file from storage since it exceeds quota
+      await supabase.storage.from('uploads').remove([filePath]);
+      const limit = getLimitBytes(status);
+      return new Response(
+        JSON.stringify({ error: 'quota_exceeded', usage, limit }),
+        { status: 403 }
+      );
     }
 
     const expiresAt = expiryMinutes ? new Date(Date.now() + expiryMinutes * 60 * 1000) : null;
@@ -22,7 +57,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       userId: locals.user.id,
       name: fileName,
       type: fileType,
-      size: fileSize,
+      size: actualSize,
       path: filePath,
       expiresAt,
     });
