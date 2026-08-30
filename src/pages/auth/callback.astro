@@ -2,10 +2,18 @@
 import { createSupabaseServerClient } from '../../lib/supabase-server';
 
 const code = Astro.url.searchParams.get('code');
+const errorDescription = Astro.url.searchParams.get('error_description') || Astro.url.searchParams.get('error');
+
+if (errorDescription) {
+  return Astro.redirect(`/login?error=${encodeURIComponent(errorDescription)}`);
+}
 
 if (code) {
   const supabase = createSupabaseServerClient(Astro.request, Astro.cookies);
-  await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    return Astro.redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  }
 }
 
 return Astro.redirect('/file-sharing');
